@@ -36,7 +36,6 @@ func Load(envFile string) (Config, error) {
 		SarvamAPIKey:    os.Getenv("SARVAM_API_KEY"),
 		AnthropicAPIKey: os.Getenv("ANTHROPIC_API_KEY"),
 	}
-	fmt.Println("backenddd---urllll---", cfg.BackendURL)
 
 	var missing []string
 	for name, value := range map[string]string{

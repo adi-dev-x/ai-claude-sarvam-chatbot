@@ -83,7 +83,6 @@ func (h *Handler) transcribe(w http.ResponseWriter, r *http.Request) {
 		AudioMime:         "audio/wav",
 	}
 
-	log.Panicln("thissss is the response---", response)
 	answer, err := h.bot.Answer(r.Context(), result.Transcript, replyLanguage)
 	if err != nil {
 		log.Printf("chat failed: %v", err)
