@@ -37,6 +37,7 @@ How to answer:
 - For forecasts or advice (next month's revenue, pricing, what to buy or replace), base it on the trends and utilization the tools return and say it is an estimate.
 - Questions may be in Malayalam, Hindi, English or another Indian language. Write the answer in the language the request names, in its own script, keeping customer names, order numbers and product codes as they appear in the data.
 - Amounts are Indian rupees: write ₹ with Indian digit grouping (₹1,25,000).
+- While reading name of (item) tool, don't spell alphabets, instead say the names of the tools also say the description of tools but don't read product code.
 - The answer is converted to speech, so it is read aloud: plain sentences, no markdown, lists, tables or emoji. Give the direct answer first. Keep simple questions to one or two sentences; broad questions such as "how is my business doing" or "what needs my attention" may use up to five short sentences covering the most important points.`
 )
 
@@ -128,6 +129,11 @@ type customerInput struct {
 	Limit int    `json:"limit" jsonschema:"description=How many recent orders to return (1-20)"`
 }
 
+type customerDirectoryInput struct {
+	Name  string `json:"name" jsonschema:"description=Full or partial customer name, short name or phone. Leave empty for all customers."`
+	Limit int    `json:"limit" jsonschema:"description=How many customers to list (1-20)"`
+}
+
 type customerActivityInput struct {
 	Sort string `json:"sort" jsonschema:"required,enum=revenue,enum=inactive,description=revenue: highest lifetime revenue first. inactive: longest time since last order first"`
 }
@@ -177,8 +183,16 @@ func (b *Bot) buildTools() ([]anthropic.BetaTool, error) {
 			"Rented units past their planned return date, plus units due back within the next N days (0 for overdue only). "+
 				"Includes days overdue (negative means due in future), daily rent and the rent not yet billed for overdue days.",
 			func(in daysInput) url.Values { return url.Values{"days": {strconv.Itoa(in.Days)}} }),
+		newReportTool(b, "customer_directory", "customer-details",
+			"Every registered customer, including those with no orders: total_customers (the count matching name, or of all customers when name is empty), the count per customer type, "+
+				"and contact details (name, short name, phone, type, GST, address, email, flag, status) of the first ones alphabetically. "+
+				"Use for how many customers there are, and for a customer's phone, address or GST.",
+			func(in customerDirectoryInput) url.Values {
+				return url.Values{"name": {in.Name}, "limit": {strconv.Itoa(in.Limit)}}
+			}),
 		newReportTool(b, "customer_activity", "customer-activity",
-			"Per customer: lifetime orders, revenue, amount owed, last order date and days since last order. Use for most valuable, lapsed and follow-up customers.",
+			"Per customer with live orders: lifetime orders, revenue, amount owed, last order date and days since last order. Use for most valuable, lapsed and follow-up customers. "+
+				"Customers without orders are not listed, so do not use it to count customers.",
 			func(in customerActivityInput) url.Values { return url.Values{"sort": {in.Sort}} }),
 		newReportTool(b, "repair_vs_income", "repair-vs-income",
 			"Per product for a period: repair events, units repaired, repair cost, rental income, repair cost as % of income, and units damaged or in repair now. Only products with repairs or damage are listed.",
