@@ -29,8 +29,8 @@ func NewHandler(sarvamClient *sarvam.Client, bot *chat.Bot, reports *backend.Cli
 // Routes registers the endpoints, wrapped in CORS for allowedOrigin.
 func (h *Handler) Routes(allowedOrigin string) http.Handler {
 	mux := http.NewServeMux()
-	mux.HandleFunc("POST /irrl/transcribe", h.transcribe)
-	mux.HandleFunc("GET /health", h.health)
+	mux.HandleFunc("POST /ai/irrl/transcribe", h.transcribe)
+	mux.HandleFunc("GET /ai/health", h.health)
 	return withCORS(mux, allowedOrigin)
 }
 
